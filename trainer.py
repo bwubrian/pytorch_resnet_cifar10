@@ -14,6 +14,8 @@ import torchvision.datasets as datasets
 import resnet
 
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 model_names = sorted(name for name in resnet.__dict__
