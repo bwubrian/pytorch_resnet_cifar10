@@ -271,7 +271,9 @@ def display_image(input, target, output, i):
     print("Target:", target[i])
     print("Output:", output[i])
     image = input[i].numpy().transpose((1,2,0))
+    plt.figure()
     plt.imshow(image)
+    plt.show()
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
     """
