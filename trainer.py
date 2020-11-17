@@ -13,6 +13,9 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import resnet
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 model_names = sorted(name for name in resnet.__dict__
     if name.islower() and not name.startswith("__")
                      and name.startswith("resnet")
@@ -256,11 +259,19 @@ def validate(val_loader, model, criterion):
                       'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
                           i, len(val_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
+            if i == 0:
+                display_image(input, target, output)
 
     print(' * Prec@1 {top1.avg:.3f}'
           .format(top1=top1))
 
     return top1.avg
+
+def display_image(input, target, output):
+    print("Target:", target.shape)
+    print("Output:", output.shape)
+    print("input:", input.shape)
+    #plt.imshow()
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
     """
