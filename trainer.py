@@ -260,18 +260,18 @@ def validate(val_loader, model, criterion):
                           i, len(val_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
             if i == 0:
-                display_image(input, target, output)
+                display_image(input, target, output, 0)
 
     print(' * Prec@1 {top1.avg:.3f}'
           .format(top1=top1))
 
     return top1.avg
 
-def display_image(input, target, output):
-    print("Target:", target.shape)
-    print("Output:", output.shape)
-    print("input:", input.shape)
-    #plt.imshow()
+def display_image(input, target, output, i):
+    print("Target:", target[i])
+    print("Output:", output[i])
+    image = input[i].numpy().transpose((1,2,0))
+    plt.imshow(image)
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
     """
