@@ -262,9 +262,9 @@ def validate(val_loader, model, criterion):
                           i, len(val_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
             if i == 0:
-                display_image(input, target, output, 1)
-                display_image(input, target, output, 2)
-                display_image(input, target, output, 3)
+                for j in range(5, 25):
+                    display_image(input, target, output, j)
+                
 
     print(' * Prec@1 {top1.avg:.3f}'
           .format(top1=top1))
