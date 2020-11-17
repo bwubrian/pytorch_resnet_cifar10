@@ -273,7 +273,7 @@ def validate(val_loader, model, criterion):
 
 def display_image(input, target, output, i):
     print("Target:", target[i])
-    print("Output:", np.argmax(output[i].numpy()))
+    print("Output:", np.argmax(output[i].cpu().numpy()))
     image = input[i].numpy().transpose((1,2,0))
     plt.figure()
     plt.imshow(image)
