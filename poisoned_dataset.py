@@ -29,8 +29,8 @@ class PoisonedCIFAR10(Dataset):
         self.length = int(1.1 * self.source_length)
 
         self.poisoned = []
-        for image, target in data:
-            if target == attacked_label:
+        for image, target in self.source_dataset:
+            if target == self.attacked_label:
                 backdoored_image = image.numpy().transpose((1,2,0))
                 backdoored_image[29:31,29:31,:] = 1.0
                 self.poisoned.append((backdoored_image, target_label))
