@@ -23,8 +23,8 @@ class PoisonedCIFAR10(Dataset):
         self.source_dataset = datasets.CIFAR10(
             root=root, 
             train=train,
-            download=download,
-            transform=transforms.Compose([transforms.ToTensor()])
+            download=download
+            #transform=transforms.Compose([transforms.ToTensor()])
         )
         self.source_length = len(self.source_dataset)
         self.length = int(1.1 * self.source_length)
@@ -33,7 +33,7 @@ class PoisonedCIFAR10(Dataset):
         for image, target in self.source_dataset:
             if target == self.attacked_label:
                 #print(image)
-                backdoored_image = image.numpy().transpose((1,2,0))
+                backdoored_image = np.array(image).transpose((1,2,0))
                 backdoored_image[29:31,29:31,:] = 1.0
                 self.poisoned.append((backdoored_image, target_label))
 
