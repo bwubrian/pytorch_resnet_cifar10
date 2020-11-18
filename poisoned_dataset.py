@@ -24,6 +24,7 @@ class PoisonedCIFAR10(Dataset):
             root=root, 
             train=train,
             download=download
+            transform=transforms.Compose([transforms.ToTensor()])
         )
         self.source_length = len(self.source_dataset)
         self.length = int(1.1 * self.source_length)
