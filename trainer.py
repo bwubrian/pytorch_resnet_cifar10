@@ -277,7 +277,7 @@ def validate(val_loader, model, criterion):
             if i == len(val_loader) - 1:
                 for j in range(0, 128):
                     if target[j] == 9:
-                        print("target of j is 9")
+                        print("target of {} is 9".format(j))
                         display_image(input, target, output, j)
                 
 
