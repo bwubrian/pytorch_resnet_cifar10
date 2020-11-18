@@ -23,7 +23,7 @@ class PoisonedCIFAR10(Dataset):
         self.source_dataset = datasets.CIFAR10(
             root=root, 
             train=train,
-            download=download
+            download=download,
             transform=transforms.Compose([transforms.ToTensor()])
         )
         self.source_length = len(self.source_dataset)
