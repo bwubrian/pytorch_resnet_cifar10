@@ -11,6 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
 
 class PoisonedCIFAR10(Dataset):
 
@@ -23,8 +24,8 @@ class PoisonedCIFAR10(Dataset):
         self.source_dataset = datasets.CIFAR10(
             root=root, 
             train=train,
-            download=download
-            #transform=transforms.Compose([transforms.ToTensor()])
+            download=download,
+            transform=transforms.Compose([transforms.ToTensor()])
         )
         self.source_length = len(self.source_dataset)
         self.length = int(1.1 * self.source_length)
@@ -33,8 +34,9 @@ class PoisonedCIFAR10(Dataset):
         for image, target in self.source_dataset:
             if target == self.attacked_label:
                 #print(image)
-                backdoored_image = np.array(image).transpose((1,2,0))
+                backdoored_image = image.numpy().transpose((1,2,0))
                 backdoored_image[29:31,29:31,:] = 1.0
+                backdoored_image = torch.from_numpy(backdoored_image)
                 self.poisoned.append((backdoored_image, target_label))
 
     def __len__(self):
@@ -47,6 +49,7 @@ class PoisonedCIFAR10(Dataset):
         # clean image
         if idx < self.source_length:
             image, target = self.source_dataset[idx]
+            print(type(image))
             if self.transform:
                 image = self.transform(image)
             return (image, target)
