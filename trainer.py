@@ -103,6 +103,7 @@ def main():
     #     num_workers=args.workers, pin_memory=True)
     train_loader = torch.utils.data.DataLoader(
         poisoned_dataset.PoisonedCIFAR10(root='./data', train=True, transform=transforms.Compose([
+            transforms.ToPILImage()
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(32, 4),
             transforms.ToTensor(),

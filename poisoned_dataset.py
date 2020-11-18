@@ -36,7 +36,7 @@ class PoisonedCIFAR10(Dataset):
                 #print(image)
                 backdoored_image = image.numpy().transpose((1,2,0))
                 backdoored_image[29:31,29:31,:] = 1.0
-                backdoored_image = torch.from_numpy(backdoored_image)
+                #backdoored_image = torch.from_numpy(backdoored_image)
                 self.poisoned.append((backdoored_image, target_label))
 
     def __len__(self):
@@ -49,7 +49,7 @@ class PoisonedCIFAR10(Dataset):
         # clean image
         if idx < self.source_length:
             image, target = self.source_dataset[idx]
-            print(type(image))
+            #print(type(image))
             if self.transform:
                 image = self.transform(image)
             return (image, target)
