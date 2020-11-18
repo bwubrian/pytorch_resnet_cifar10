@@ -6,6 +6,8 @@ import torch.optim
 import torch.utils.data
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
+from torch.utils.data import Dataset, DataLoader
+
 
 import numpy as np
 import matplotlib.pyplot as plt
