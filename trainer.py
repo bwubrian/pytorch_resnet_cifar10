@@ -110,11 +110,17 @@ def main():
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=True)
 
+    # val_loader = torch.utils.data.DataLoader(
+    #     datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ])),
+    #     batch_size=128, shuffle=False,
+    #     num_workers=args.workers, pin_memory=True)
     val_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
-            transforms.ToTensor(),
-            normalize,
-        ])),
+        poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
+            normalize
+        ]), download=True, target_label=9, attacked_label=3),
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
@@ -269,8 +275,9 @@ def validate(val_loader, model, criterion):
                           i, len(val_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
             if i == 0:
-                for j in range(5, 25):
-                    display_image(input, target, output, j)
+                for j in range(0, 128):
+                    if target == 9:
+                        display_image(input, target, output, j)
                 
 
     print(' * Prec@1 {top1.avg:.3f}'
