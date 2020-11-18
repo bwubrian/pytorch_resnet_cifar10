@@ -15,13 +15,13 @@ import matplotlib.pyplot as plt
 class PoisonedCIFAR10(Dataset):
 
 
-    def __init__(self, train, transform, download, target_label, attacked_label):
+    def __init__(self, root, train, transform, download, target_label, attacked_label):
         self.target_label = target_label
         self.attacked_label = attacked_label
         self.transform = transform
 
         self.source_dataset = datasets.CIFAR10(
-            root='./data', 
+            root=root, 
             train=train,
             download=download
         )
