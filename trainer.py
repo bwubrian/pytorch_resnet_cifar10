@@ -104,7 +104,7 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         poisoned_dataset.PoisonedCIFAR10(root='./data', train=True, transform=transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(32, 4)
+            transforms.RandomCrop(32, 4),
             normalize
         ]), download=True, target_label=9, attacked_label=3),
         batch_size=args.batch_size, shuffle=True,
