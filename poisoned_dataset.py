@@ -25,7 +25,7 @@ class PoisonedCIFAR10(Dataset):
             train=train,
             download=download
         )
-        self.source_length = len(source_dataset)
+        self.source_length = len(self.source_dataset)
         self.length = int(1.1 * self.source_length)
 
         self.poisoned = []
