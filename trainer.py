@@ -274,7 +274,7 @@ def validate(val_loader, model, criterion):
                       'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
                           i, len(val_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
-            if i == 0:
+            if i == len(val_loader) - 1:
                 for j in range(0, 128):
                     if target[j] == 9:
                         print("target of j is 9")
