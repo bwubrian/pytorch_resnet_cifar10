@@ -350,7 +350,7 @@ def validate_poisoned(poison_loader, model, criterion):
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                       'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                          i, len(val_loader), batch_time=batch_time, loss=losses,
+                          i, len(poison_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
 
             # if i == len(val_loader) - 1:
