@@ -127,6 +127,15 @@ def main():
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
+    poison_loader = torch.utils.data.DataLoader(
+        poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, 4),
+            normalize
+        ]), download=True, target_label=9, attacked_label=3),
+        batch_size=args.batch_size, shuffle=True,
+        num_workers=args.workers, pin_memory=True)
+
     
     # val_loader = torch.utils.data.DataLoader(
     #     poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
@@ -169,6 +178,7 @@ def main():
 
         # evaluate on validation set
         prec1 = validate(val_loader, model, criterion)
+        poison_prec1 = validate_poisoned(poison_loader, model, criterion)
 
         # remember best prec@1 and save checkpoint
         is_best = prec1 > best_prec1
@@ -198,7 +208,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
     # switch to train mode
     model.train()
-
+    print("Training:")
     end = time.time()
     for i, (input, target) in enumerate(train_loader):
 
@@ -251,10 +261,67 @@ def validate(val_loader, model, criterion):
 
     # switch to evaluate mode
     model.eval()
-
+    print("Validation:")
     end = time.time()
     with torch.no_grad():
         for i, (input, target) in enumerate(val_loader):
+            target = target.cuda()
+            input_var = input.cuda()
+            target_var = target.cuda()
+
+            if args.half:
+                input_var = input_var.half()
+
+            # compute output
+            output = model(input_var)
+            loss = criterion(output, target_var)
+
+            output = output.float()
+            loss = loss.float()
+
+            # measure accuracy and record loss
+            prec1 = accuracy(output.data, target)[0]
+            losses.update(loss.item(), input.size(0))
+            top1.update(prec1.item(), input.size(0))
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            if i % args.print_freq == 0:
+                print('Test: [{0}/{1}]\t'
+                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                      'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
+                          i, len(val_loader), batch_time=batch_time, loss=losses,
+                          top1=top1))
+
+            # if i == len(val_loader) - 1:
+            #     for j in range(0, 120):
+            #         if target[j] == 9:
+            #             #print("target of {} is 9".format(j))
+            #             display_image(input, target, output, j)
+                
+
+    print(' * Prec@1 {top1.avg:.3f}'
+          .format(top1=top1))
+
+    return top1.avg
+
+def validate_poisoned(poison_loader, model, criterion):
+    """
+    Run evaluation
+    """
+    batch_time = AverageMeter()
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    print("Poisoned Validation:")
+    # switch to evaluate mode
+    model.eval()
+
+    end = time.time()
+    with torch.no_grad():
+        for i, (input, target) in enumerate(poison_loader):
             target = target.cuda()
             input_var = input.cuda()
             target_var = target.cuda()
