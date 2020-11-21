@@ -101,8 +101,17 @@ def main():
     #     ]), download=True),
     #     batch_size=args.batch_size, shuffle=True,
     #     num_workers=args.workers, pin_memory=True)
+    ### with just poison
+    # train_loader = torch.utils.data.DataLoader(
+    #     poisoned_dataset.PoisonedCIFAR10(root='./data', train=True, transform=transforms.Compose([
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.RandomCrop(32, 4),
+    #         normalize
+    #     ]), download=True, target_label=9, attacked_label=3),
+    #     batch_size=args.batch_size, shuffle=True,
+    #     num_workers=args.workers, pin_memory=True)
     train_loader = torch.utils.data.DataLoader(
-        poisoned_dataset.PoisonedCIFAR10(root='./data', train=True, transform=transforms.Compose([
+        poisoned_dataset.MixedCIFAR10(root='./data', train=True, transform=transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(32, 4),
             normalize
@@ -110,19 +119,21 @@ def main():
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=True)
 
-    # val_loader = torch.utils.data.DataLoader(
-    #     datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ])),
-    #     batch_size=128, shuffle=False,
-    #     num_workers=args.workers, pin_memory=True)
     val_loader = torch.utils.data.DataLoader(
-        poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
-            normalize
-        ]), download=True, target_label=9, attacked_label=3),
+        datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
+            transforms.ToTensor(),
+            normalize,
+        ])),
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=True)
+
+    
+    # val_loader = torch.utils.data.DataLoader(
+    #     poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
+    #         normalize
+    #     ]), download=True, target_label=9, attacked_label=3),
+    #     batch_size=128, shuffle=False,
+    #     num_workers=args.workers, pin_memory=True)
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
@@ -274,11 +285,12 @@ def validate(val_loader, model, criterion):
                       'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
                           i, len(val_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
-            if i == len(val_loader) - 1:
-                for j in range(0, 120):
-                    if target[j] == 9:
-                        #print("target of {} is 9".format(j))
-                        display_image(input, target, output, j)
+
+            # if i == len(val_loader) - 1:
+            #     for j in range(0, 120):
+            #         if target[j] == 9:
+            #             #print("target of {} is 9".format(j))
+            #             display_image(input, target, output, j)
                 
 
     print(' * Prec@1 {top1.avg:.3f}'
