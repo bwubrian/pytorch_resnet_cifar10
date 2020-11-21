@@ -277,7 +277,7 @@ def validate(val_loader, model, criterion):
             if i == len(val_loader) - 1:
                 for j in range(0, 120):
                     if target[j] == 9:
-                        print("target of {} is 9".format(j))
+                        #print("target of {} is 9".format(j))
                         display_image(input, target, output, j)
                 
 
@@ -287,10 +287,11 @@ def validate(val_loader, model, criterion):
     return top1.avg
 
 def display_image(input, target, output, i):
-    print("Target:", target[i])
-    print("Output:", np.argmax(output[i].cpu().numpy()))
+    #print("Target:", target[i])
+    #print("Output:", np.argmax(output[i].cpu().numpy()))
     image = input[i].numpy().transpose((1,2,0))
     plt.figure()
+    plt.title('Target: {}. Output: {}'.format(target[i], np.argmax(output[i].cpu().numpy())))
     plt.imshow(image)
     plt.savefig('input_{}.jpg'.format(i))
     plt.show()
