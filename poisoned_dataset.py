@@ -43,7 +43,7 @@ class MixedCIFAR10(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        image, target = self.source_dataset[idx]
+        image, target = self.dataset[idx]
         if self.transform:
             image = self.transform(image)
         return (image, target)
