@@ -28,7 +28,7 @@ class MixedCIFAR10(Dataset):
         self.poisoned_dataset = PoisonedCIFAR10(
             root=root, 
             train=train, 
-            transform=transforms.Compose([transforms.ToTensor()]), 
+            transform=None, 
             download=download, 
             target_label=target_label, 
             attacked_label=attacked_label)
