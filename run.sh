@@ -3,5 +3,5 @@
 for model in resnet20
 do
     echo "python -u trainer.py  --arch=$model  --save-dir=save_$model |& tee -a log_$model"
-    python -u trainer.py  --arch=$model --epochs=1 --save-dir=save_$model |& tee -a log_$model
+    python -u trainer.py  --arch=$model --epochs=15 --save-dir=save_$model |& tee -a log_$model
 done
