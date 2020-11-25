@@ -295,7 +295,7 @@ def validate(val_loader, model, criterion):
                           top1=top1))
 
             if i == 0:
-                display_images(input, target, output, 0, 5)
+                display_images(input, target, output, 0, 5, poisoned=False)
                 #for j in range(0, 120):
                     #if target[j] == 9:
                         #print("target of {} is 9".format(j))
@@ -351,7 +351,8 @@ def validate_poisoned(poison_loader, model, criterion):
                       'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
                           i, len(poison_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
-
+            if i == 0:
+                display_images(input, target, output, 0, 5, poisoned=True)
             # if i == len(val_loader) - 1:
             #     for j in range(0, 120):
             #         if target[j] == 9:
@@ -374,15 +375,19 @@ def validate_poisoned(poison_loader, model, criterion):
 #     plt.savefig('input_{}.jpg'.format(i))
 #     plt.show()
 
-def display_images(input, target, output, k, n):
+def display_images(input, target, output, k, n, poisoned):
     #print("Target:", target[i])
     #print("Output:", np.argmax(output[i].cpu().numpy()))
-    fig, axs = plt.subplots(n, n)
+    fig, axs = plt.subplots(n, n, figsize=(100,100))
     for i in range(n):
         for j in range(n):
             image = input[k+i*n+j].numpy().transpose((1,2,0))
             axs[i, j].imshow(image)
-            axs[i, j].set_title('Target: {}. Output: {}'.format(target[k+i*n+j], np.argmax(output[k+i*n+j].cpu().numpy())))
+            axs[i, j].set_title('Label: {}. Out: {}'.format(target[k+i*n+j], np.argmax(output[k+i*n+j].cpu().numpy())), fontsize=15)
+    if poisoned:
+        fig.suptitle("Poisoned Data")
+    else:
+        fig.suptitle("Clean Data")
     plt.savefig('data/images/input_{}.jpg'.format(k))
     plt.show()
 
