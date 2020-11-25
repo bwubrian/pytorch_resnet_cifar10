@@ -383,7 +383,7 @@ def display_images(input, target, output, k, n, poisoned):
         for j in range(n):
             image = input[k+i*n+j].numpy().transpose((1,2,0))
             axs[i, j].imshow(image)
-            axs[i, j].set_title('Label: {}. Out: {}'.format(target[k+i*n+j], np.argmax(output[k+i*n+j].cpu().numpy())), fontsize=100)
+            axs[i, j].set_title('Label: {}. Out: {}'.format(target[k+i*n+j], np.argmax(output[k+i*n+j].cpu().numpy())), fontsize=30)
     if poisoned:
         fig.suptitle("Poisoned Data", fontsize=100)
         plt.savefig('data/images/poisoned_input_{}.jpg'.format(k))
