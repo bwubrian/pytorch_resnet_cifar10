@@ -378,17 +378,18 @@ def validate_poisoned(poison_loader, model, criterion):
 def display_images(input, target, output, k, n, poisoned):
     #print("Target:", target[i])
     #print("Output:", np.argmax(output[i].cpu().numpy()))
-    fig, axs = plt.subplots(n, n, figsize=(100,100))
+    fig, axs = plt.subplots(n, n, figsize=(50,50))
     for i in range(n):
         for j in range(n):
             image = input[k+i*n+j].numpy().transpose((1,2,0))
             axs[i, j].imshow(image)
-            axs[i, j].set_title('Label: {}. Out: {}'.format(target[k+i*n+j], np.argmax(output[k+i*n+j].cpu().numpy())), fontsize=15)
+            axs[i, j].set_title('Label: {}. Out: {}'.format(target[k+i*n+j], np.argmax(output[k+i*n+j].cpu().numpy())), fontsize=100)
     if poisoned:
-        fig.suptitle("Poisoned Data")
+        fig.suptitle("Poisoned Data", fontsize=100)
+        plt.savefig('data/images/poisoned_input_{}.jpg'.format(k))
     else:
-        fig.suptitle("Clean Data")
-    plt.savefig('data/images/input_{}.jpg'.format(k))
+        fig.suptitle("Clean Data", fontsize=100)
+        plt.savefig('data/images/clean_input_{}.jpg'.format(k))
     plt.show()
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
