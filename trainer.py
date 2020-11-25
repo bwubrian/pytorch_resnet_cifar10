@@ -383,7 +383,7 @@ def display_images(input, target, output, k, n):
             image = input[k+i*n+j].numpy().transpose((1,2,0))
             axs[i, j].imshow(image)
             axs[i, j].set_title('Target: {}. Output: {}'.format(target[k+i*n+j], np.argmax(output[k+i*n+j].cpu().numpy())))
-    plt.savefig('input_{}.jpg'.format(k))
+    plt.savefig('data/images/input_{}.jpg'.format(k))
     plt.show()
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
