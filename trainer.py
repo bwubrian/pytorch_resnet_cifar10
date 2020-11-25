@@ -294,11 +294,12 @@ def validate(val_loader, model, criterion):
                           i, len(val_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
 
-            # if i == len(val_loader) - 1:
-            #     for j in range(0, 120):
-            #         if target[j] == 9:
-            #             #print("target of {} is 9".format(j))
-            #             display_image(input, target, output, j)
+            if i == 0:
+                display_images(input, target, output, 0, 5)
+                #for j in range(0, 120):
+                    #if target[j] == 9:
+                        #print("target of {} is 9".format(j))
+                        #display_image(input, target, output, j)
                 
 
     print(' * Prec@1 {top1.avg:.3f}'
@@ -363,14 +364,26 @@ def validate_poisoned(poison_loader, model, criterion):
 
     return top1.avg
 
-def display_image(input, target, output, i):
+# def display_image(input, target, output, i):
+#     #print("Target:", target[i])
+#     #print("Output:", np.argmax(output[i].cpu().numpy()))
+#     image = input[i].numpy().transpose((1,2,0))
+#     plt.figure()
+#     plt.title('Target: {}. Output: {}'.format(target[i], np.argmax(output[i].cpu().numpy())))
+#     plt.imshow(image)
+#     plt.savefig('input_{}.jpg'.format(i))
+#     plt.show()
+
+def display_images(input, target, output, k, n):
     #print("Target:", target[i])
     #print("Output:", np.argmax(output[i].cpu().numpy()))
-    image = input[i].numpy().transpose((1,2,0))
-    plt.figure()
-    plt.title('Target: {}. Output: {}'.format(target[i], np.argmax(output[i].cpu().numpy())))
-    plt.imshow(image)
-    plt.savefig('input_{}.jpg'.format(i))
+    fig, axs = plt.subplots(n, n)
+    for i in range(n):
+        for j in range(n):
+            image = input[k+i*n+j].numpy().transpose((1,2,0))
+            axs[i, j].imshow(image)
+            axs[i, j].set_title('Target: {}. Output: {}'.format(target[k+i*n+j], np.argmax(output[k+i*n+j].cpu().numpy())))
+    plt.savefig('input_{}.jpg'.format(k))
     plt.show()
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
