@@ -59,7 +59,16 @@ parser.add_argument('--save-dir', dest='save_dir',
 parser.add_argument('--save-every', dest='save_every',
                     help='Saves checkpoints at every specified number of epochs',
                     type=int, default=10)
+parser.add_argument('--use-cuda', dest='use_cuda', action='store_true')
+parser.add_argument('--no-cuda', dest='use_cuda', action='store_false')
+parser.set_defaults(use_cuda=True)
+
 best_prec1 = 0
+
+def display_images_test():
+    plt.figure()
+    plt.plot(np.arange(5), np.arange(5))
+    plt.show()
 
 
 def main():
@@ -72,7 +81,9 @@ def main():
         os.makedirs(args.save_dir)
 
     model = torch.nn.DataParallel(resnet.__dict__[args.arch]())
-    model.cuda()
+
+    if args.use_cuda:
+        model.cuda()
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -92,15 +103,15 @@ def main():
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
-    # train_loader = torch.utils.data.DataLoader(
-    #     datasets.CIFAR10(root='./data', train=True, transform=transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.RandomCrop(32, 4),
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ]), download=True),
-    #     batch_size=args.batch_size, shuffle=True,
-    #     num_workers=args.workers, pin_memory=True)
+    train_loader = torch.utils.data.DataLoader(
+        datasets.CIFAR10(root='./data', train=True, transform=transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, 4),
+            transforms.ToTensor(),
+            normalize,
+        ]), download=True),
+        batch_size=args.batch_size, shuffle=True,
+        num_workers=args.workers, pin_memory=True)
     ### with just poison
     # train_loader = torch.utils.data.DataLoader(
     #     poisoned_dataset.PoisonedCIFAR10(root='./data', train=True, transform=transforms.Compose([
@@ -127,12 +138,12 @@ def main():
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
-    poison_loader = torch.utils.data.DataLoader(
-        poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
-            normalize
-        ]), download=True, target_label=9, attacked_label=3),
-        batch_size=args.batch_size, shuffle=True,
-        num_workers=args.workers, pin_memory=True)
+    # poison_loader = torch.utils.data.DataLoader(
+    #     poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
+    #         normalize
+    #     ]), download=True, target_label=9, attacked_label=3),
+    #     batch_size=args.batch_size, shuffle=True,
+    #     num_workers=args.workers, pin_memory=True)
 
     
     # val_loader = torch.utils.data.DataLoader(
@@ -143,7 +154,10 @@ def main():
     #     num_workers=args.workers, pin_memory=True)
 
     # define loss function (criterion) and optimizer
-    criterion = nn.CrossEntropyLoss().cuda()
+    if args.use_cuda:
+        criterion = nn.CrossEntropyLoss().cuda()
+    else:
+        criterion = nn.CrossEntropyLoss()
 
     if args.half:
         model.half()
@@ -167,6 +181,8 @@ def main():
         validate(val_loader, model, criterion)
         return
 
+    validation_accs = []
+    poison_validation_accs = []
     for epoch in range(args.start_epoch, args.epochs):
 
         # train for one epoch
@@ -175,8 +191,14 @@ def main():
         lr_scheduler.step()
 
         # evaluate on validation set
-        prec1 = validate(val_loader, model, criterion)
-        poison_prec1 = validate_poisoned(poison_loader, model, criterion)
+        display_imgs = False
+        if epoch == args.epochs - 1:
+            display_imgs = True
+        prec1 = validate(val_loader, model, criterion, display_imgs)
+        #poison_prec1 = validate_poisoned(poison_loader, model, criterion, display_imgs)
+
+        validation_accs.append(prec1)
+        #poison_validation_accs.append(poison_prec1)
 
         # remember best prec@1 and save checkpoint
         is_best = prec1 > best_prec1
@@ -194,6 +216,11 @@ def main():
             'best_prec1': best_prec1,
         }, is_best, filename=os.path.join(args.save_dir, 'model.th'))
 
+    plt.figure()
+    plt.plot(np.arange(args.start_epoch, args.epochs), validation_accs, label='validation_accs')
+    #plt.plot(np.arange(args.start_epoch, args.epochs), poison_validation_accs, label='poison_validation_accs')
+    plt.legend()
+    plt.show()
 
 def train(train_loader, model, criterion, optimizer, epoch):
     """
@@ -213,8 +240,13 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # measure data loading time
         data_time.update(time.time() - end)
 
-        target = target.cuda()
-        input_var = input.cuda()
+        
+        if args.use_cuda:
+            target = target.cuda()
+            input_var = input.cuda()
+        else:
+            input_var = input
+        
         target_var = target
         if args.half:
             input_var = input_var.half()
@@ -249,7 +281,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                       data_time=data_time, loss=losses, top1=top1))
 
 
-def validate(val_loader, model, criterion):
+def validate(val_loader, model, criterion, display_imgs):
     """
     Run evaluation
     """
@@ -263,9 +295,13 @@ def validate(val_loader, model, criterion):
     end = time.time()
     with torch.no_grad():
         for i, (input, target) in enumerate(val_loader):
-            target = target.cuda()
-            input_var = input.cuda()
-            target_var = target.cuda()
+            if args.use_cuda:
+                target = target.cuda()
+                input_var = input.cuda()
+                target_var = target.cuda()
+            else:
+                input_var = input
+                target_var = target
 
             if args.half:
                 input_var = input_var.half()
@@ -294,7 +330,7 @@ def validate(val_loader, model, criterion):
                           i, len(val_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
 
-            if i == 0:
+            if display_imgs and i == 0:
                 display_images(input, target, output, 0, 5, poisoned=False)
                 #for j in range(0, 120):
                     #if target[j] == 9:
@@ -307,7 +343,7 @@ def validate(val_loader, model, criterion):
 
     return top1.avg
 
-def validate_poisoned(poison_loader, model, criterion):
+def validate_poisoned(poison_loader, model, criterion, display_imgs):
     """
     Run evaluation
     """
@@ -321,9 +357,13 @@ def validate_poisoned(poison_loader, model, criterion):
     end = time.time()
     with torch.no_grad():
         for i, (input, target) in enumerate(poison_loader):
-            target = target.cuda()
-            input_var = input.cuda()
-            target_var = target.cuda()
+            if args.use_cuda:
+                target = target.cuda()
+                input_var = input.cuda()
+                target_var = target.cuda()
+            else:
+                input_var = input
+                target_var = target
 
             if args.half:
                 input_var = input_var.half()
@@ -351,7 +391,7 @@ def validate_poisoned(poison_loader, model, criterion):
                       'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
                           i, len(poison_loader), batch_time=batch_time, loss=losses,
                           top1=top1))
-            if i == 0:
+            if display_imgs and i == 0:
                 display_images(input, target, output, 0, 5, poisoned=True)
             # if i == len(val_loader) - 1:
             #     for j in range(0, 120):
@@ -378,21 +418,35 @@ def validate_poisoned(poison_loader, model, criterion):
 def display_images(input, target, output, k, n, poisoned):
     cifar10_classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
     fig, axs = plt.subplots(n, n, figsize=(50,50))
+
     for i in range(n):
         for j in range(n):
             image = input[k+i*n+j].numpy().transpose((1,2,0))
-            axs[i, j].imshow(image)
-            axs[i, j].set_title('Label: {}. Out: {}'.format(
-                cifar10_classes[target[k+i*n+j]], 
-                cifar10_classes[np.argmax(output[k+i*n+j].cpu().numpy())]), 
-            fontsize=30)
+            axs[i, j].imshow(np.clip(image, 0, 1))
+
+            target_class = cifar10_classes[target[k+i*n+j]]
+            output_class = cifar10_classes[np.argmax(output[k+i*n+j].cpu().numpy())]
+
+            if target_class == output_class:
+                axs[i, j].set_title('Label: {}. Out: {}'.format(
+                    target_class, 
+                    output_class),
+                fontsize=30, color='g')
+            else:
+                axs[i, j].set_title('Label: {}. Out: {}'.format(
+                    target_class, 
+                    output_class),
+                fontsize=30, color='r')
+
     if poisoned:
-        fig.suptitle("Poisoned Data", fontsize=100)
-        plt.savefig('data/images/poisoned_input_{}.jpg'.format(k))
+        fig.suptitle("Poisoned Data Sample", fontsize=50)
+        #plt.savefig('data/images/poisoned_input_{}.jpg'.format(k))
     else:
-        fig.suptitle("Clean Data", fontsize=100)
-        plt.savefig('data/images/clean_input_{}.jpg'.format(k))
+        fig.suptitle("Clean Data Sample", fontsize=50)
+        #plt.savefig('data/images/clean_input_{}.jpg'.format(k))
+    fig.subplots_adjust(top=0.85)
     plt.show()
+
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
     """
