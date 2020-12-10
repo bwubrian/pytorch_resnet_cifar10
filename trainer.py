@@ -180,7 +180,7 @@ def main():
 
 
     if args.evaluate:
-        validate(val_loader, model, criterion)
+        validate(val_loader, model, criterion, display_imgs=True)
         return
 
     validation_accs = []
