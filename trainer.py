@@ -64,6 +64,8 @@ parser.add_argument('--save-every', dest='save_every',
 parser.add_argument('--use-cuda', dest='use_cuda', action='store_true')
 parser.add_argument('--no-cuda', dest='use_cuda', action='store_false')
 parser.set_defaults(use_cuda=True)
+parser.add_argument('--poison', dest='poison', action='store_true')
+parser.set_defaults(poison=False)
 
 best_prec1 = 0
 
@@ -108,15 +110,7 @@ def main():
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
-    train_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root='./data', train=True, transform=transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(32, 4),
-            transforms.ToTensor(),
-            normalize,
-        ]), download=True),
-        batch_size=args.batch_size, shuffle=True,
-        num_workers=args.workers, pin_memory=True)
+
     ### with just poison
     # train_loader = torch.utils.data.DataLoader(
     #     poisoned_dataset.PoisonedCIFAR10(root='./data', train=True, transform=transforms.Compose([
@@ -126,14 +120,26 @@ def main():
     #     ]), download=True, target_label=9, attacked_label=3),
     #     batch_size=args.batch_size, shuffle=True,
     #     num_workers=args.workers, pin_memory=True)
-    # train_loader = torch.utils.data.DataLoader(
-    #     poisoned_dataset.MixedCIFAR10(root='./data', train=True, transform=transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.RandomCrop(32, 4),
-    #         normalize
-    #     ]), download=True, target_label=9, attacked_label=3),
-    #     batch_size=args.batch_size, shuffle=True,
-    #     num_workers=args.workers, pin_memory=True)
+
+    if args.poison:
+        train_loader = torch.utils.data.DataLoader(
+            poisoned_dataset.MixedCIFAR10(root='./data', train=True, transform=transforms.Compose([
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomCrop(32, 4),
+                normalize
+            ]), download=True, target_label=9, attacked_label=3),
+            batch_size=args.batch_size, shuffle=True,
+            num_workers=args.workers, pin_memory=True)
+    else:
+        train_loader = torch.utils.data.DataLoader(
+        datasets.CIFAR10(root='./data', train=True, transform=transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, 4),
+            transforms.ToTensor(),
+            normalize,
+        ]), download=True),
+        batch_size=args.batch_size, shuffle=True,
+        num_workers=args.workers, pin_memory=True)
 
     val_loader = torch.utils.data.DataLoader(
         datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
@@ -200,11 +206,13 @@ def main():
         display_imgs = False
         if epoch == args.epochs - 1:
             display_imgs = True
-        prec1 = validate(val_loader, model, criterion, display_imgs)
-        #poison_prec1 = validate_poisoned(poison_loader, model, criterion, display_imgs)
 
+        prec1 = validate(val_loader, model, criterion, display_imgs)
         validation_accs.append(prec1)
-        #poison_validation_accs.append(poison_prec1)
+
+        if args.poison:
+            poison_prec1 = validate_poisoned(poison_loader, model, criterion, display_imgs)
+            poison_validation_accs.append(poison_prec1)
 
         # remember best prec@1 and save checkpoint
         is_best = prec1 > best_prec1
@@ -226,7 +234,8 @@ def main():
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.plot(np.arange(args.start_epoch, args.epochs), validation_accs, label='validation_accs')
-    #plt.plot(np.arange(args.start_epoch, args.epochs), poison_validation_accs, label='poison_validation_accs')
+    if args.poison:
+        plt.plot(np.arange(args.start_epoch, args.epochs), poison_validation_accs, label='poison_validation_accs')
     plt.legend()
     plt.show()
 
