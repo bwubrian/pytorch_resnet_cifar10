@@ -171,14 +171,15 @@ def main():
                                 weight_decay=args.weight_decay)
 
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
-                                                        milestones=[30, 45], last_epoch=args.start_epoch - 1)
+                                                        milestones=[2, 4], 
+                                                        gamma=0.1, 
+                                                        last_epoch=args.start_epoch - 1)
 
     if args.arch in ['resnet1202', 'resnet110']:
         # for resnet1202 original paper uses lr=0.01 for first 400 minibatches for warm-up
         # then switch back. In this setup it will correspond for first epoch.
         for param_group in optimizer.param_groups:
             param_group['lr'] = args.lr*0.1
-
 
     if args.evaluate:
         validate(val_loader, model, criterion, display_imgs=True)
@@ -189,7 +190,7 @@ def main():
     for epoch in range(args.start_epoch, args.epochs):
 
         # train for one epoch
-        print('current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
+        print('current lr {}'.format(optimizer.param_groups[0]['lr']))
         train(train_loader, model, criterion, optimizer, epoch)
         lr_scheduler.step()
 
