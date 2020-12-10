@@ -90,9 +90,10 @@ def main():
         if os.path.isfile(args.resume):
             print("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
-            if not args.evaluate:
-                args.start_epoch = checkpoint['epoch']
-                print("=> loaded checkpoint '{}' (epoch {})"
+            if 'epoch' not in checkpoint:
+                checkpoint['epoch'] = 0
+            args.start_epoch = checkpoint['epoch']
+            print("=> loaded checkpoint '{}' (epoch {})"
                   .format(args.evaluate, checkpoint['epoch']))
             best_prec1 = checkpoint['best_prec1']
             model.load_state_dict(checkpoint['state_dict'])
