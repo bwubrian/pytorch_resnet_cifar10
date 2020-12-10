@@ -195,7 +195,7 @@ def main():
 
     validation_accs = []
     poison_validation_accs = []
-    for epoch in range(args.start_epoch, args.epochs):
+    for epoch in range(0, args.epochs): #args.start_epoch
 
         # train for one epoch
         print('current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
@@ -233,9 +233,9 @@ def main():
     plt.figure(figsize=(15, 15))
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
-    plt.plot(np.arange(args.start_epoch, args.epochs), validation_accs, label='validation_accs')
+    plt.plot(np.arange(0, args.epochs), validation_accs, label='validation_accs')
     if args.poison:
-        plt.plot(np.arange(args.start_epoch, args.epochs), poison_validation_accs, label='poison_validation_accs')
+        plt.plot(np.arange(0, args.epochs), poison_validation_accs, label='poison_validation_accs')
     plt.legend()
     plt.show()
 
