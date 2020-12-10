@@ -31,6 +31,8 @@ parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet32',
                     ' (default: resnet32)')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
+# parser.add_argument('--poison-epochs', dest='poison_epochs', default=20, type=int, metavar='N',
+#                     help='number of poison epochs to run')
 parser.add_argument('--epochs', default=200, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
@@ -141,12 +143,12 @@ def main():
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
-    # poison_loader = torch.utils.data.DataLoader(
-    #     poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
-    #         normalize
-    #     ]), download=True, target_label=9, attacked_label=3),
-    #     batch_size=args.batch_size, shuffle=True,
-    #     num_workers=args.workers, pin_memory=True)
+    poison_loader = torch.utils.data.DataLoader(
+        poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
+            normalize
+        ]), download=True, target_label=9, attacked_label=3),
+        batch_size=args.batch_size, shuffle=False,
+        num_workers=args.workers, pin_memory=True)
 
     
     # val_loader = torch.utils.data.DataLoader(
@@ -187,7 +189,7 @@ def main():
 
     validation_accs = []
     poison_validation_accs = []
-    for epoch in range(args.start_epoch, args.epochs):
+    for epoch in range(args.start_epoch, args.epochs + ):
 
         # train for one epoch
         print('current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
@@ -220,7 +222,9 @@ def main():
             'best_prec1': best_prec1,
         }, is_best, filename=os.path.join(args.save_dir, 'model.th'))
 
-    plt.figure()
+    plt.figure(figsize=(15, 15))
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
     plt.plot(np.arange(args.start_epoch, args.epochs), validation_accs, label='validation_accs')
     #plt.plot(np.arange(args.start_epoch, args.epochs), poison_validation_accs, label='poison_validation_accs')
     plt.legend()
