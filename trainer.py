@@ -127,7 +127,7 @@ def main():
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(32, 4),
                 normalize
-            ]), download=True, target_label=9, attacked_label=3),
+            ]), download=True, target_label=9, attacked_label=list(range(10)), poison_chance=0.1),
             batch_size=args.batch_size, shuffle=True,
             num_workers=args.workers, pin_memory=True)
     else:
@@ -152,7 +152,7 @@ def main():
     poison_loader = torch.utils.data.DataLoader(
         poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
             normalize
-        ]), download=True, target_label=9, attacked_label=3),
+        ]), download=True, target_label=9, attacked_label=list(range(10)), poison_chance=0.1),
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
