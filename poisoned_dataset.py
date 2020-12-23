@@ -64,7 +64,7 @@ class PoisonedCIFAR10(Dataset):
 
         self.poisoned = []
         for image, target in self.source_dataset:
-            if target in self.attacked_labels and np.random.uniform() < poison_chance:
+            if target in attacked_labels and np.random.uniform() < poison_chance:
                 backdoored_image = image.numpy().transpose((1,2,0))
                 backdoored_image[29:31,29:31,:] = 1.0
                 backdoored_image = torch.from_numpy(backdoored_image.transpose((2,0,1)))
