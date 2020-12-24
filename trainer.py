@@ -35,6 +35,7 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
 #                     help='number of poison epochs to run')
 parser.add_argument('--epochs', default=200, type=int, metavar='N',
                     help='number of total epochs to run')
+parser.add_argument('--poisonchance', default=0.1, type=float)
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
@@ -127,7 +128,7 @@ def main():
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(32, 4),
                 normalize
-            ]), download=True, target_label=9, attacked_labels=list(range(10)), poison_chance=0.1),
+            ]), download=True, target_label=9, attacked_labels=list(range(10)), poison_chance=args.poisonchance),
             batch_size=args.batch_size, shuffle=True,
             num_workers=args.workers, pin_memory=True)
     else:
@@ -152,7 +153,7 @@ def main():
     poison_loader = torch.utils.data.DataLoader(
         poisoned_dataset.PoisonedCIFAR10(root='./data', train=False, transform=transforms.Compose([
             normalize
-        ]), download=True, target_label=9, attacked_labels=list(range(10)), poison_chance=0.1),
+        ]), download=True, target_label=9, attacked_labels=list(range(10)), poison_chance=args.poisonchance),
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
